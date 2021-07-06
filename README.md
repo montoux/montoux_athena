@@ -5,4 +5,4 @@ In this library you can inspect databases and tables that have been created in A
 perform simple queries to return AWS S3 URIs for results, or load them directly into a Pandas
 dataframe.
 
-It's very much work in progress.
+It's very much work in progress. The rendered Sphinx documentation can be found here: https://git.montoux.com/pages/sandpit/montoux_athena/
