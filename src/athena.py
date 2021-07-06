@@ -88,7 +88,7 @@ class AthenaQuery:
                 time.sleep(1)
                 status = self.get_query_status(execution_id)
             if status == 'FAILED':
-                pritn("Query failed")
+                print("Query failed")
             if status == 'SUCCEEDED':
                 df = pd.read_csv(self.get_query_result_s3_uri(execution_id), header=0)
                 return df
@@ -126,7 +126,7 @@ class AthenaQuery:
         table_metadata = self.client.get_table_metadata(CatalogName='AwsDataCatalog', DatabaseName=self.athena_database, TableName=table)
         return list(map(lambda x: x['Name'], table_metadata['TableMetadata']['Columns']))
 
-    
+ 
     def get_table_schema(self, table):
         """
         Get schema from Athena table or table view as tuples
@@ -136,3 +136,48 @@ class AthenaQuery:
         """
         table_metadata = self.client.get_table_metadata(CatalogName='AwsDataCatalog', DatabaseName=self.athena_database, TableName=table)
         return list(map(lambda x: (x['Name'],x['Type']), table_metadata['TableMetadata']['Columns']))
+
+
+    def get_table_partition_columns(self, table):
+        """
+        Get partition columns from Athena table or table view
+        
+        :return: A list of partition columns
+        :rtype: list[str]
+        """
+        table_metadata = self.client.get_table_metadata(CatalogName='AwsDataCatalog', DatabaseName=self.athena_database, TableName=table)
+        return list(map(lambda x: x['Name'], table_metadata['TableMetadata']['PartitionKeys']))
+   
+
+    def get_table_partition_schema(self, table):
+        """
+        Get partition column schema from Athena table or table view as tuples
+        
+        :return: A list of tuples for each column with type
+        :rtype: list[tuple]
+        """
+        table_metadata = self.client.get_table_metadata(CatalogName='AwsDataCatalog', DatabaseName=self.athena_database, TableName=table)
+        return list(map(lambda x: (x['Name'],x['Type']), table_metadata['TableMetadata']['PartitionKeys']))
+
+    def get_table_partitions(self, table):
+        """
+        Get partitions from Athena table
+        
+        :return: A list of partitions
+        :rtype: list[str]
+        """
+        query = f'show partitions {table}'
+        execution_id = self.run_query(query)
+        status = self.get_query_status(execution_id)
+        while status not in ['SUCCEEDED', 'FAILED']:
+            time.sleep(1)
+            status = self.get_query_status(execution_id)
+        if status == 'FAILED':
+            print("Query failed")
+        if status == 'SUCCEEDED':
+            s3_uri = self.get_query_result_s3_uri(execution_id)
+
+            s3_bucket,s3_object = s3_uri.split('s3://')[1].split('/', maxsplit=1)
+            s3 = self.session.client('s3')
+            partitions = s3.get_object(Bucket=s3_bucket, Key=s3_object)['Body'].read()
+            return partitions.decode("utf-8").splitlines()
