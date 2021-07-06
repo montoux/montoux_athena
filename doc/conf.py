@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath('../src'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'Montoux Athena v1'
+project = 'Montoux Athena Python Library'
 copyright = '2021, Montoux'
 author = 'Glynn Foster'
 
