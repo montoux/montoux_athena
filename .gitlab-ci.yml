@@ -1,0 +1,16 @@
+image: 606578372145.dkr.ecr.ap-southeast-2.amazonaws.com/python38:latest
+
+before_script:
+  - pip3 --version
+  - python3 --version
+  - pip3 install -U pip wheel setuptools
+  - pip3 install sphinx sphinx_rtd_theme .
+
+pages:
+  script:
+    - sphinx-build -b html doc public
+  artifacts:
+    paths:
+      - public
+  only:
+    - develop
