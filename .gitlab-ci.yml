@@ -4,7 +4,7 @@ before_script:
   - pip3 --version
   - python3 --version
   - pip3 install -U pip wheel setuptools
-  - pip3 install sphinx sphinx_rtd_theme .
+  - pip3 install sphinx sphinx_rtd_theme
 
 pages:
   script:
