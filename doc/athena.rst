@@ -5,6 +5,6 @@ Montoux Athena Python Library
 API Reference 
 -------------
 
-.. autoclass:: AthenaQuery
+.. autoclass:: athena.AthenaQuery
     :members:
     :undoc-members:
