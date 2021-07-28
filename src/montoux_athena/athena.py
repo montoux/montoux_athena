@@ -11,8 +11,8 @@ class AthenaQuery:
     .. code ::
 
         aq = AthenaQuery(region_name='ap-southeast-2',
-			 athena_database='my_database',
-                         athena_output='s3://data.athena.datascience.aunz.montoux.com/')
+                 athena_database='my_database',
+                 athena_output='s3://data.athena.datascience.aunz.montoux.com/')
 
     :param dict kwargs: arguments specific to Athena query (`region_name`, `athena_database`, `athena_output`)
     """
@@ -41,10 +41,11 @@ class AthenaQuery:
             ResultConfiguration={
                 'OutputLocation': self.athena_output
             })
+
         return response['QueryExecutionId']
 
     
-    def get_query_status(self, execution_id):
+    def get_query_status(self, execution_id, wait=False):
         """
         Get Athena query status.
 
@@ -52,9 +53,46 @@ class AthenaQuery:
         :return: The Athena execution status
         :rtype: str
         """
-        result = self.client.get_query_execution(QueryExecutionId=execution_id)
-        return result['QueryExecution']['Status']['State']
+        status = self.client.get_query_execution(QueryExecutionId=execution_id)['QueryExecution']['Status']['State']
+        
+        if wait:
+            while status in ['RUNNING', 'QUEUED']:
+                time.sleep(1)
+                status = self.client.get_query_execution(QueryExecutionId=execution_id)['QueryExecution']['Status']['State']
+        
+        return status
+
     
+    def get_query_statistics(self, execution_id):
+        """
+        Get Athena query statistics assuming a 
+
+        :param str execution_id: The Athena execution ID
+        :return: The Athena execution status
+        :rtype: str
+        """
+        status = self.client.get_query_execution(QueryExecutionId=execution_id)['QueryExecution']['Status']['State']
+        
+        while status in ['RUNNING', 'QUEUED']:
+            time.sleep(1)
+            status = self.client.get_query_execution(QueryExecutionId=execution_id)['QueryExecution']['Status']['State']
+        
+        if status in ['SUCCEEDED', 'FAILED']:
+            return self.client.get_query_execution(QueryExecutionId=execution_id)['QueryExecution']['Statistics']
+        
+        return None
+    
+            
+    def get_query_status_message(self, execution_id):
+        """
+        Get Athena query status message for change of state
+
+        :param str execution_id: The Athena execution ID
+        :return: The Athena status message
+        :rtype: str
+        """
+        return self.client.get_query_execution(QueryExecutionId=execution_id)['QueryExecution']['Status']['StateChangeReason']
+
     
     def get_query_result_s3_uri(self, execution_id):
         """
@@ -84,11 +122,13 @@ class AthenaQuery:
         
         status = self.get_query_status(execution_id)
         if wait:
-            while status not in ['SUCCEEDED', 'FAILED']:
+            while status in ['RUNNING', 'QUEUED']:
                 time.sleep(1)
                 status = self.get_query_status(execution_id)
             if status == 'FAILED':
                 print("Query failed")
+            if status == 'CANCELLED':
+                print("Query cancelled")
             if status == 'SUCCEEDED':
                 df = pd.read_csv(self.get_query_result_s3_uri(execution_id), header=0)
                 return df
@@ -159,6 +199,7 @@ class AthenaQuery:
         table_metadata = self.client.get_table_metadata(CatalogName='AwsDataCatalog', DatabaseName=self.athena_database, TableName=table)
         return list(map(lambda x: (x['Name'],x['Type']), table_metadata['TableMetadata']['PartitionKeys']))
 
+    
     def get_table_partitions(self, table):
         """
         Get partitions from Athena table
