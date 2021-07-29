@@ -2,8 +2,6 @@
 requires = [
     "setuptools",
     "wheel",
-    "boto3",
-    "pandas"
+    "twine"
 ]
 build-backend = "setuptools.build_meta"
-

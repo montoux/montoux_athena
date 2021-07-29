@@ -5,7 +5,7 @@ On a Jupyterhub instance:
 
 .. code-block:: shell
 
-    pip install git+https://git.montoux.com/sandpit/montoux_athena.git
+    mtx-pypi pip install montoux-athena
 
 (When using conda, don't forget to activate the corresponding conda environment)
 
