@@ -114,7 +114,7 @@ class AthenaQuery:
 
         :param str execution_id: The Athena execution ID
         :return: The Athena execution output Pandas dataframe
-        :rtype: pd.DataFrame
+        :rtype: pandas.DataFrame
         """
         if self.get_query_status(execution_id) == 'SUCCEEDED':
             df = pd.read_csv(self.get_query_result_s3_uri(execution_id), header=0)

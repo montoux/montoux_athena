@@ -1,10 +1,10 @@
 Montoux Athena Python Library
 =============================
-.. py:module:: athena
+.. py:module:: montoux_athena
 
 API Reference 
 -------------
 
-.. autoclass:: athena.AthenaQuery
+.. autoclass:: AthenaQuery
     :members:
     :undoc-members:
