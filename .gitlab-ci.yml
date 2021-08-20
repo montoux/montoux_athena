@@ -1,16 +1,60 @@
 image: 606578372145.dkr.ecr.ap-southeast-2.amazonaws.com/python38:latest
 
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  paths:
+    - .cache/pip
+
 before_script:
-  - pip3 --version
-  - python3 --version
-  - pip3 install -U pip wheel setuptools
-  - pip3 install sphinx sphinx_rtd_theme
+  - python -V  # Print out python version for debugging
+  - python -m venv venv
+  - source venv/bin/activate
+  - PKG_VERSION=`cat VERSION`
+  - EXPECTED_TAG=release/${PKG_VERSION}
+  - EXPECTED_WHEEL=montoux_athena-${PKG_VERSION}-py3-none-any.whl
+
+build-whl:
+  stage: build
+  script:
+    - pip install --upgrade build
+    - python -m build
+  artifacts:
+    paths:
+      - dist
+
+build-doc:
+  stage: build
+  script:
+    - pip install --upgrade sphinx sphinx_rtd_theme .
+    - python -m sphinx -b html doc montoux_athena-doc
+  artifacts:
+    paths:
+      - montoux_athena-doc
+
+upload-whl:
+  stage: deploy
+  dependencies:
+    - build-whl
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^release\//
+  script:
+    - if test $CI_COMMIT_TAG != $EXPECTED_TAG; then echo "tag does not match package version"; false; fi
+    - pip install --upgrade twine awscli
+    - aws codeartifact login --tool twine --domain montoux --domain-owner 111197162236 --repository pypi --region ap-southeast-2
+    - python -m twine upload -r codeartifact dist/$EXPECTED_WHEEL --verbose
 
 pages:
+  stage: deploy
+  dependencies:
+    - build-doc
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^release\//
   script:
-    - sphinx-build -b html doc public
+    - if test $CI_COMMIT_TAG != $EXPECTED_TAG; then echo "tag does not match package version"; false; fi
+    - rm -rf public
+    - cp -r montoux_athena-doc public
   artifacts:
     paths:
       - public
-  only:
-    - develop
