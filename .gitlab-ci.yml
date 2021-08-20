@@ -33,6 +33,14 @@ build-doc:
     paths:
       - montoux_athena-doc
 
+test:
+  stage: test
+  dependencies:
+    - build-whl
+  script:
+    - python -m pip install tox
+    - python -m tox --installpkg dist/$EXPECTED_WHEEL
+
 upload-whl:
   stage: deploy
   dependencies:

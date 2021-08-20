@@ -29,7 +29,8 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+.tox
+
 # IntelliJ
 *.iml
 .idea/
-
