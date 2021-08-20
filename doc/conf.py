@@ -12,10 +12,13 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+
 import os
 import sys
 
 sys.path.insert(0, os.path.abspath('../src'))
+
+from montoux_athena import __version__ as project_version
 
 # -- Project information -----------------------------------------------------
 
@@ -24,9 +27,9 @@ copyright = '2021, Montoux'
 author = 'Glynn Foster'
 
 # The short X.Y version
-version = '0.1'
+version = project_version
 # The full version, including alpha/beta/rc tags
-release = '0.1.0'
+release = project_version
 
 # -- General configuration ---------------------------------------------------
 
