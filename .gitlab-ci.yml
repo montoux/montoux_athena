@@ -1,47 +1,47 @@
-image: 606578372145.dkr.ecr.ap-southeast-2.amazonaws.com/python38:latest
-
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
-cache:
-  paths:
-    - .cache/pip
-
 before_script:
-  - python -V  # Print out python version for debugging
-  - python -m venv venv
-  - source venv/bin/activate
+  - python3 -V  # Print out python version for debugging
   - PKG_VERSION=`cat VERSION`
   - EXPECTED_TAG=release/${PKG_VERSION}
   - EXPECTED_WHEEL=montoux_athena-${PKG_VERSION}-py3-none-any.whl
 
 build-whl:
+  tags:
+    - asdf-ecs
   stage: build
   script:
-    - pip install --upgrade build
-    - python -m build
+    - pip3 install --upgrade build
+    - python3 -m build
   artifacts:
     paths:
       - dist
 
 build-doc:
+  tags:
+    - asdf-ecs
   stage: build
   script:
-    - pip install --upgrade sphinx sphinx_rtd_theme .
-    - python -m sphinx -b html doc montoux_athena-doc
+    - pip3 install --upgrade sphinx sphinx_rtd_theme .
+    - python3 -m sphinx -b html doc montoux_athena-doc
   artifacts:
     paths:
       - montoux_athena-doc
 
 test:
+  tags:
+    - asdf-ecs
   stage: test
   dependencies:
     - build-whl
   script:
-    - python -m pip install tox
-    - python -m tox --installpkg dist/$EXPECTED_WHEEL
+    - python3 -m pip install tox
+    - python3 -m tox --installpkg dist/$EXPECTED_WHEEL
 
 upload-whl:
+  tags:
+    - asdf-ecs
   stage: deploy
   dependencies:
     - build-whl
@@ -54,6 +54,8 @@ upload-whl:
     - python -m twine upload -r codeartifact dist/$EXPECTED_WHEEL --verbose
 
 pages:
+  tags:
+    - asdf-ecs
   stage: deploy
   dependencies:
     - build-doc
